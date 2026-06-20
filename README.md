@@ -1,6 +1,8 @@
 # Video Study Player
 
-Minimal local web app to load ZIP files containing videos, play them in a playlist, add simple metadata (Topic/Voice), and persist progress in `localStorage`.
+A lightweight Electron app that loads video ZIP archives, builds a playlist from the contained files, and keeps study progress between app restarts.
+
+This repository contains only the application source and installer metadata. No video files or ZIP archives are included.
 
 How it works:
 - Open `index.html` in a browser (double-click or via a local server).

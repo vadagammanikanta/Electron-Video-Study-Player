@@ -1,7 +1,14 @@
 {
   "name": "video-study-player",
   "version": "0.1.0",
+  "description": "Electron video playlist app with ZIP import, playable in VLC and persistent progress.",
   "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vadagammanikanta/Electron-Video-Study-Player.git"
+  },
+  "homepage": "https://github.com/vadagammanikanta/Electron-Video-Study-Player",
+  "author": "vadagammanikanta",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder",
