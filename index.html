@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Video Study Player</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Video Study Player</h1>
+    <div class="controls">
+      <input id="zipInput" type="file" accept=".zip" multiple />
+      <button id="loadFolderBtn">Load ZIP Folder</button>
+      <button id="clearStorage">Clear saved progress</button>
+    </div>
+  </header>
+  <main>
+    <aside id="playlistPane">
+      <h2>Playlist</h2>
+      <div id="playlist"></div>
+      <div id="progressSummary"></div>
+    </aside>
+
+    <section id="playerPane">
+      <video id="videoPlayer" controls></video>
+      <div id="playerControls">
+        <button id="prevBtn">Prev</button>
+        <button id="nextBtn">Next</button>
+        <button id="markDone">Mark Completed</button>
+        <button id="openVlcBtn">Open in VLC</button>
+      </div>
+      <div id="metaEditor">
+        <label>Topic: <input id="topicInput" /></label>
+        <label>Voice: <input id="voiceInput" /></label>
+      </div>
+    </section>
+
+    <aside id="guidePane">
+      <h2>Study Guidance</h2>
+      <p id="guidanceText">Load your ZIP files (multiple). The app extracts videos and adds them to the playlist. Click an item to play. Progress is saved automatically. Use Topic/Voice fields to annotate each video.</p>
+      <h3>Tips</h3>
+      <ul>
+        <li>Watch in short sessions and resume where you left off.</li>
+        <li>Mark completed after review to track progress.</li>
+        <li>Add notes externally if needed.</li>
+      </ul>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
