@@ -103,10 +103,10 @@ loadFolderBtn && loadFolderBtn.addEventListener('click', async ()=>{
   }
   playlist = [];
   for(const it of res.items){
-    const url = makeFileUrl(it.cachedPath);
+    const url = it.cachedPath ? makeFileUrl(it.cachedPath) : '';
     const id = `${it.zipName}::${it.entryName}`;
     const saved = state[id] || {};
-    const item = { id, title: it.entryName, url, zipName: it.zipName, cachedPath: it.cachedPath, blob: null, topic: saved.topic||'', voice: saved.voice||'', position: saved.position||0, completed: !!saved.completed };
+    const item = { id, title: it.entryName, url, zipName: it.zipName, zipPath: it.zipPath || null, cachedPath: it.cachedPath || null, blob: null, topic: saved.topic||'', voice: saved.voice||'', position: saved.position||0, completed: !!saved.completed };
     playlist.push(item);
   }
   playlist.sort((a,b)=> naturalCompare(`${a.zipName}/${a.title}`, `${b.zipName}/${b.title}`));
@@ -171,14 +171,29 @@ function renderPlaylistItem(item, idx){
   playlistEl.appendChild(div);
 }
 
-function playAtIndex(idx){
+async function playAtIndex(idx){
   if(idx < 0 || idx >= playlist.length) return;
   currentIndex = idx;
   const item = playlist[idx];
   Array.from(playlistEl.children).forEach(c=>c.classList.remove('active'));
   const child = playlistEl.querySelector(`[data-index='${idx}']`);
   if(child) child.classList.add('active');
-  videoPlayer.src = item.url;
+  // If not already cached locally, ask main process to extract this zip entry on-demand
+  if(!item.cachedPath && item.zipPath && window.electronAPI && window.electronAPI.extractEntry){
+    if(statusText) statusText.textContent = 'Extracting video to cache...';
+    const res = await window.electronAPI.extractEntry(item.zipPath, item.title);
+    if(res && res.success && res.cachedPath){
+      item.cachedPath = res.cachedPath;
+      item.url = makeFileUrl(res.cachedPath);
+      persistItem(item);
+      if(statusText) statusText.textContent = '';
+    }else{
+      if(statusText) statusText.textContent = '';
+      alert('Failed to extract video: '+(res && res.error));
+      return;
+    }
+  }
+  videoPlayer.src = item.url || (item.cachedPath ? makeFileUrl(item.cachedPath) : '');
   try{ videoPlayer.currentTime = item.position || 0; }catch(e){}
   topicInput.value = item.topic || '';
   voiceInput.value = item.voice || '';
@@ -251,6 +266,17 @@ openVlcBtn.addEventListener('click', ()=>{
       window.electronAPI.openFileInVLC(item.cachedPath).then(res=>{ if(!res || !res.success) alert('Failed to open in VLC: '+(res && res.error)); });
       return;
     }
+    // if not cached but we have the zip path, extract then open
+    if(!item.cachedPath && item.zipPath && window.electronAPI.extractEntry && window.electronAPI.openFileInVLC){
+      window.electronAPI.extractEntry(item.zipPath, item.title).then(res=>{
+        if(!res || !res.success){ alert('Failed to extract for VLC: '+(res && res.error)); return; }
+        item.cachedPath = res.cachedPath;
+        item.url = makeFileUrl(item.cachedPath);
+        persistItem(item);
+        window.electronAPI.openFileInVLC(item.cachedPath).then(r=>{ if(!r || !r.success) alert('Failed to open in VLC: '+(r && r.error)); });
+      }).catch(err=>{ alert('Error extracting for VLC: '+String(err)); });
+      return;
+    }
     if(window.electronAPI.openInVLC && item.blob){
       item.blob.arrayBuffer().then(buf => {
         window.electronAPI.openInVLC(item.title, buf).then(res=>{
@@ -321,3 +347,42 @@ clearStorage.addEventListener('click', ()=>{
 
 // Initial UI state
 updateProgressSummary();
+
+// --- Cache directory settings UI ---
+async function initCacheSettings(){
+  const display = document.getElementById('cachePathDisplay');
+  const chooseBtn = document.getElementById('chooseCacheBtn');
+  const applyBtn = document.getElementById('applyCacheBtn');
+  const migrateCb = document.getElementById('migrateCheckbox');
+  const status = document.getElementById('cacheStatus');
+  if(!display || !chooseBtn || !applyBtn || !migrateCb || !status) return;
+  try{
+    if(window.electronAPI && window.electronAPI.getCacheInfo){
+      const info = await window.electronAPI.getCacheInfo();
+      if(info && info.success){ display.textContent = info.cacheDir || '(unknown)'; }
+    }
+  }catch(e){ display.textContent = '(error)'; }
+
+  chooseBtn.addEventListener('click', async ()=>{
+    if(!window.electronAPI || !window.electronAPI.chooseCacheDir) return alert('Not available');
+    const res = await window.electronAPI.chooseCacheDir();
+    if(res && res.success && res.path){ display.textContent = res.path; display.dataset.newPath = res.path; }
+  });
+
+  applyBtn.addEventListener('click', async ()=>{
+    const newPath = display.dataset.newPath || display.textContent;
+    if(!newPath) return alert('No path selected');
+    const migrate = !!migrateCb.checked;
+    status.textContent = 'Moving cache...';
+    try{
+      const r = await window.electronAPI.setCacheDir(newPath, migrate);
+      if(r && r.success){ status.textContent = 'Cache moved to: ' + r.cacheDir; display.textContent = r.cacheDir; display.dataset.newPath = '';
+        // reload library index so UI picks up any moved cachedPaths
+        if(window.electronAPI && window.electronAPI.loadIndex){ window.electronAPI.loadIndex().then(()=>{ location.reload(); }); }
+      } else { status.textContent = 'Failed: ' + (r && r.error); }
+    }catch(err){ status.textContent = 'Error: '+String(err); }
+  });
+}
+
+// initialize cache settings after DOM ready
+window.addEventListener('load', ()=>{ initCacheSettings().catch(()=>{}); });

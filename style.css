@@ -17,3 +17,6 @@ video{width:100%;height:60vh;background:#000;border-radius:6px}
 button{background:var(--accent);color:#fff;border:0;padding:8px 10px;border-radius:4px;cursor:pointer}
 input[type=file]{width:220px}
 #guidePane ul{padding-left:18px}
+
+.brand{display:flex;align-items:center;gap:10px}
+#appLogo{height:40px;width:auto;border-radius:6px}

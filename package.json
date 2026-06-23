@@ -27,6 +27,15 @@
     "directories": {
       "output": "dist"
     },
+    "win": {
+      "icon": "build/icon.ico"
+    },
+    "mac": {
+      "icon": "build/icon.icns"
+    },
+    "linux": {
+      "icon": "build/icon.png"
+    },
     "files": [
       "**/*"
     ],

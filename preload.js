@@ -7,4 +7,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   loadIndex: () => ipcRenderer.invoke('load-index'),
   persistProgress: (data) => ipcRenderer.invoke('persist-progress', data)
   ,openFileInVLC: (filePath) => ipcRenderer.invoke('open-file-in-vlc', { filePath })
+  ,extractEntry: (zipPath, entryName) => ipcRenderer.invoke('extract-entry', { zipPath, entryName })
+  ,getCacheInfo: () => ipcRenderer.invoke('get-cache-info')
+  ,setCacheDir: (newDir, migrate) => ipcRenderer.invoke('set-cache-dir', { newDir, migrate })
+  ,chooseCacheDir: () => ipcRenderer.invoke('choose-cache-dir')
 });

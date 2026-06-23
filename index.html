@@ -9,7 +9,10 @@
 </head>
 <body>
   <header>
-    <h1>Video Study Player</h1>
+    <div class="brand">
+      <img id="appLogo" src="assets/logo.png" alt="Video Study Player">
+      <h1>Video Study Player</h1>
+    </div>
     <div class="controls">
       <input id="zipInput" type="file" accept=".zip" multiple />
       <button id="loadFolderBtn">Load ZIP Folder</button>
@@ -46,6 +49,16 @@
         <li>Mark completed after review to track progress.</li>
         <li>Add notes externally if needed.</li>
       </ul>
+      <h3>Settings</h3>
+      <div id="cacheSettings" style="margin-top:8px;padding:8px;border:1px solid #ddd;background:#fafafa">
+        <div><strong>Cache directory:</strong> <span id="cachePathDisplay">(loading...)</span></div>
+        <div style="margin-top:6px">
+          <button id="chooseCacheBtn">Choose...</button>
+          <label style="margin-left:8px"><input type="checkbox" id="migrateCheckbox" checked /> Migrate existing files</label>
+          <button id="applyCacheBtn" style="margin-left:8px">Move & Apply</button>
+        </div>
+        <div id="cacheStatus" style="margin-top:6px;color:#555;font-size:13px"></div>
+      </div>
     </aside>
   </main>
 
